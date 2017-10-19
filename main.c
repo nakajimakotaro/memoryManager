@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "memoryManager.h"
 
 enum Operation
 {
@@ -12,6 +13,8 @@ enum Operation
     Operation_ERROR,
 };
 
+
+
 struct _Character
 {
     char name[100];
@@ -21,16 +24,6 @@ struct _Character
 };
 
 typedef struct _Character Character;
-
-Character *mallocCharacter(char *name, int hp, int mp)
-{
-    Character *chara = malloc(sizeof(Character));
-    strncpy(chara->name, name, 100);
-    chara->hp = hp;
-    chara->mp = mp;
-    chara->next = NULL;
-    return chara;
-}
 
 void characterListAdd(Character *root, Character *addChara)
 {
@@ -45,6 +38,16 @@ void characterListAdd(Character *root, Character *addChara)
         last = last->next;
     }
     last->next = addChara;
+}
+
+Character *newCharacter(char *name, int hp, int mp)
+{
+    Character *chara = malloc(sizeof(Character));
+    strncpy(chara->name, name, 100);
+    chara->hp = hp;
+    chara->mp = mp;
+    chara->next = NULL;
+    return chara;
 }
 Character *characterListRemove(Character *root, int index)
 {
@@ -102,7 +105,7 @@ void getInteractiveCharacter(Character *chara)
 }
 Character *add(Character *root)
 {
-    Character *addChara = mallocCharacter("", 0, 0);
+    Character *addChara = newCharacter("", 0, 0);
     getInteractiveCharacter(addChara);
     if (root != NULL)
     {
@@ -192,11 +195,11 @@ void main()
 
     Character *chara;
     Character *root;
-    root = mallocCharacter("musigidane", 10, 10);
-    chara = mallocCharacter("musigisou", 20, 20);
+    root = newCharacter("musigidane", 10, 10);
+    chara = newCharacter("musigisou", 20, 20);
     characterListAdd(root, chara);
 
-    chara = mallocCharacter("musigibana", 30, 30);
+    chara = newCharacter("musigibana", 30, 30);
     characterListAdd(root, chara);
 
     int isLoop = 1;
