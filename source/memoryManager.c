@@ -7,17 +7,6 @@
 
 const size_t POOL_SIZE = 200;
 
-typedef struct _MemoryBlockHeader{
-    struct _MemoryBlockHeader* prevFreeBlock;
-    struct _MemoryBlockHeader* nextFreeBlock;
-    size_t size;
-    bool isUse;
-    int8_t body[];
-} MemoryBlockHeader;
-typedef struct _MemoryPoolHeader{
-    void* startPoint;
-    MemoryBlockHeader* freeMemoryList;
-} MemoryPoolHeader;
 MemoryPoolHeader memoryPoolHeader = {};
 
 void initMemory(){
@@ -68,21 +57,4 @@ void* myAllocate(size_t size){
 
 void* myFree(){
     return NULL;
-}
-
-void debugPoolView(){
-    printf("poolStart: %ld\n", (size_t)memoryPoolHeader.startPoint);
-    printf("poolLast:  %ld\n", (size_t)((int8_t*)memoryPoolHeader.startPoint + POOL_SIZE));
-    printf("freePoint: %ld\n", (size_t)memoryPoolHeader.freeMemoryList);
-    printf("freeSize:  %ld\n", (size_t)memoryPoolHeader.freeMemoryList->size);
-    printf("\n");
-}
-int main(){
-    initMemory();
-    debugPoolView();
-    myAllocate(10);
-    debugPoolView();
-    myAllocate(30);
-    debugPoolView();
-    return 0;
 }
