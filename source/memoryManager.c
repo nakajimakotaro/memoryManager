@@ -55,6 +55,6 @@ void* myAllocate(size_t size){
     return allocateMemoryHeader->body;
 }
 
-void* myFree(){
+void* myFree(void* ptr){
     return NULL;
 }
