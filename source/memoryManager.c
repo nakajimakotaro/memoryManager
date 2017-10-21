@@ -38,7 +38,7 @@ void* myAllocate(size_t size){
     allocateMemoryHeader->nextFreeBlock = NULL;
     allocateMemoryHeader->isUse = true;
 
-    newFreeMemoryHeader = (MemoryBlockHeader*)((int8_t*)allocateMemoryHeader + sizeof(MemoryBlockHeader) + allocateMemoryHeader->size);
+    newFreeMemoryHeader = (MemoryBlockHeader*)((intptr_t)allocateMemoryHeader + sizeof(MemoryBlockHeader) + allocateMemoryHeader->size);
     newFreeMemoryHeader->prevFreeBlock = tempMemoryHeader.prevFreeBlock;
     newFreeMemoryHeader->nextFreeBlock = tempMemoryHeader.nextFreeBlock;
     newFreeMemoryHeader->size = tempMemoryHeader.size - (allocateMemoryHeader->size + sizeof(MemoryBlockHeader));

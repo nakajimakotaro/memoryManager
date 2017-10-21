@@ -7,7 +7,7 @@ typedef struct _MemoryBlockHeader{
     struct _MemoryBlockHeader* nextFreeBlock;
     size_t size;
     bool isUse;
-    int8_t body[];
+    void* body[];
 } MemoryBlockHeader;
 typedef struct _MemoryPoolHeader{
     void* startPoint;

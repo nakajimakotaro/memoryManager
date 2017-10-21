@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.cu": "c",
-        "memorymanager.h": "c"
+        "memorymanager.h": "c",
+        "stdio.h": "c"
     }
 }

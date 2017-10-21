@@ -1,6 +1,7 @@
 #include <CUnit/CUnit.h>
 #include <CUnit/Console.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include "memoryManager.h"
 
 void allocateTest(){
@@ -34,9 +35,9 @@ int main(){
     return 0;
 }
 void debugPoolView(){
-    printf("poolStart: %ld\n", (size_t)memoryPoolHeader.startPoint);
-    printf("poolLast:  %ld\n", (size_t)((int8_t*)memoryPoolHeader.startPoint + POOL_SIZE));
-    printf("freePoint: %ld\n", (size_t)memoryPoolHeader.freeMemoryList);
-    printf("freeSize:  %ld\n", (size_t)memoryPoolHeader.freeMemoryList->size);
+    printf("poolStart: %zu\n", (size_t)memoryPoolHeader.startPoint);
+    printf("poolLast:  %zu\n", (size_t)((intptr_t)memoryPoolHeader.startPoint + POOL_SIZE));
+    printf("freePoint: %zu\n", (size_t)memoryPoolHeader.freeMemoryList);
+    printf("freeSize:  %zu\n", memoryPoolHeader.freeMemoryList->size);
     printf("\n");
 }
