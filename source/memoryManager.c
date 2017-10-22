@@ -20,7 +20,6 @@ void initMemory(){
 
 void* myAllocate(size_t size){
     MemoryBlockHeader *newFreeMemoryHeader, *allocateMemoryHeader;
-    MemoryBlockHeader tempMemoryHeader;
     allocateMemoryHeader = memoryPoolHeader.freeMemoryList;
     while(allocateMemoryHeader){
         if(allocateMemoryHeader->size >= sizeof(MemoryBlockHeader) + size){
@@ -31,30 +30,29 @@ void* myAllocate(size_t size){
     if(allocateMemoryHeader == NULL){
         return NULL;
     }
-    memcpy(&tempMemoryHeader, memoryPoolHeader.freeMemoryList, sizeof(MemoryBlockHeader));
 
+    //BLockの切り出し
     allocateMemoryHeader->size = size;
     allocateMemoryHeader->prevFreeBlock = NULL;
     allocateMemoryHeader->nextFreeBlock = NULL;
     allocateMemoryHeader->isUse = true;
+    memoryPoolHeader.freeMemoryList = memoryPoolHeader.freeMemoryList->nextFreeBlock;
 
+    //余ったBLockの切り出し
+    //TODO 要求サイズと同じBlocksizeの場合
     newFreeMemoryHeader = (MemoryBlockHeader*)((intptr_t)allocateMemoryHeader + sizeof(MemoryBlockHeader) + allocateMemoryHeader->size);
-    newFreeMemoryHeader->prevFreeBlock = tempMemoryHeader.prevFreeBlock;
-    newFreeMemoryHeader->nextFreeBlock = tempMemoryHeader.nextFreeBlock;
-    newFreeMemoryHeader->size = tempMemoryHeader.size - (allocateMemoryHeader->size + sizeof(MemoryBlockHeader));
-    newFreeMemoryHeader->isUse = false;
+    newFreeMemoryHeader->size = memoryPoolHeader.freeMemoryList->size - (allocateMemoryHeader->size + sizeof(MemoryBlockHeader));
+    myFree(newFreeMemoryHeader->body);
 
-    if(newFreeMemoryHeader->prevFreeBlock){
-        newFreeMemoryHeader->prevFreeBlock->nextFreeBlock = newFreeMemoryHeader;
-    }
-    if(newFreeMemoryHeader->nextFreeBlock){
-        newFreeMemoryHeader->nextFreeBlock->prevFreeBlock = newFreeMemoryHeader;
-    }
-
-    memoryPoolHeader.freeMemoryList = newFreeMemoryHeader;
     return allocateMemoryHeader->body;
 }
 
 void* myFree(void* ptr){
-    return NULL;
+    //TODO
+    MemoryBlockHeader* freeBlockHeader = (MemoryBlockHeader*)((intptr_t)ptr - sizeof(MemoryBlockHeader));
+    freeBlockHeader->isUse = false;
+    freeBlockHeader->nextFreeBlock = memoryPoolHeader.freeMemoryList;
+    freeBlockHeader->prevFreeBlock = NULL;
+    memoryPoolHeader.freeMemoryList->prevFreeBlock = freeBlockHeader;
+    memoryPoolHeader.freeMemoryList = freeBlockHeader;
 }

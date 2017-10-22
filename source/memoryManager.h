@@ -5,6 +5,8 @@
 typedef struct _MemoryBlockHeader{
     struct _MemoryBlockHeader* prevFreeBlock;
     struct _MemoryBlockHeader* nextFreeBlock;
+    struct _MemoryBlockHeader* prevBlock;
+    struct _MemoryBlockHeader* nextBlock;
     size_t size;
     bool isUse;
     void* body[];
