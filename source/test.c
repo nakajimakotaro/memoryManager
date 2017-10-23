@@ -5,6 +5,7 @@
 #include "memoryManager.h"
 
 void allocateTest(){
+    initMemory();
     debugPoolView();
     CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32);
 
@@ -21,14 +22,13 @@ void allocateTest(){
     debugPoolView();
 
     myAllocate(1);
-    CU_ASSERT(memoryPoolHeader.freeMemoryList->size == 0);
+    CU_ASSERT(memoryPoolHeader.freeMemoryList->size == 1);
     debugPoolView();
 }
 
 int main(){
     CU_initialize_registry();
     CU_pSuite test_suite = CU_add_suite("myAllocate", NULL, NULL);
-    initMemory();
     CU_add_test(test_suite, "allocateTest", allocateTest);
     CU_console_run_tests();
     CU_cleanup_registry();

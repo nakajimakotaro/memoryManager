@@ -5,8 +5,6 @@
 typedef struct _MemoryBlockHeader{
     struct _MemoryBlockHeader* prevFreeBlock;
     struct _MemoryBlockHeader* nextFreeBlock;
-    struct _MemoryBlockHeader* prevBlock;
-    struct _MemoryBlockHeader* nextBlock;
     size_t size;
     bool isUse;
     void* body[];
@@ -16,7 +14,7 @@ typedef struct _MemoryPoolHeader{
     MemoryBlockHeader* freeMemoryList;
 } MemoryPoolHeader;
 void* myAllocate(size_t size);
-void* myFree(void* ptr);
+void myFree(void* ptr);
 void initMemory();
 void debugPoolView();
 extern MemoryPoolHeader memoryPoolHeader;
