@@ -56,9 +56,6 @@ void* myAllocate(size_t size){
     return allocateMemoryHeader->body;
 }
 
-void popList(MemoryBlockHeader* popNode){
-    popNode->prevFreeBlock->nextFreeBlock = popNode->nextFreeBlock;
-}
 void myFree(void* ptr){
     if(ptr == NULL){
         return;
@@ -82,10 +79,19 @@ void myFree(void* ptr){
 
     if(nextMergeBlockHeader->isUse == false){
         freeBlockHeader->size = ((intptr_t)nextMergeBlockHeader->body + nextMergeBlockHeader->size) - (intptr_t)freeBlockHeader->body;
-        popList(nextMergeBlockHeader);
+        if(nextMergeBlockHeader->nextFreeBlock && nextMergeBlockHeader->prevFreeBlock){
+            nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
+        }else if(nextMergeBlockHeader->prevBlockPoint == NULL){
+            memoryPoolHeader.freeMemoryList = freeBlockHeader;
+        }
     }
     if(prevMergeBlockHeader->isUse == false){
         prevMergeBlockHeader->size = ((intptr_t)freeBlockHeader->body + freeBlockHeader->size) - (intptr_t)prevMergeBlockHeader->body;
-        popList(freeBlockHeader);
+        nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
+        if(nextMergeBlockHeader->nextFreeBlock && nextMergeBlockHeader->prevFreeBlock){
+            nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
+        }else if(nextMergeBlockHeader->prevBlockPoint == NULL){
+            memoryPoolHeader.freeMemoryList = prevMergeBlockHeader;
+        }
     }
 }
