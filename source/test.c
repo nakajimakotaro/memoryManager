@@ -9,21 +9,23 @@ void allocateTest(){
     debugPoolView();
     CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32);
 
-    myAllocate(10);
+    void* m1 = myAllocate(10);
     CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32 - 10 - 32);
     debugPoolView();
 
-    myAllocate(30);
+    void* m2 = myAllocate(30);
     CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32 - 10 - 32 - 30 - 32);
     debugPoolView();
 
-    myAllocate(32);
-    CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32 - 10 - 32 - 30 - 32 - 32 - 32);
+    myFree(m2);
+    CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32 - 10 - 32);
     debugPoolView();
 
-    myAllocate(1);
-    CU_ASSERT(memoryPoolHeader.freeMemoryList->size == 1);
+    void* m5 = myAllocate(30);
+    CU_ASSERT(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 32 - 10 - 32 - 30 - 32);
     debugPoolView();
+
+
 }
 
 int main(){

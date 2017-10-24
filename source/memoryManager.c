@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "memoryManager.h"
 
-const size_t POOL_SIZE = 201;
+const size_t POOL_SIZE = 200;
 
 MemoryPoolHeader memoryPoolHeader = {};
 
@@ -38,11 +38,15 @@ void* myAllocate(size_t size){
     allocateMemoryHeader->prevFreeBlock = NULL;
     allocateMemoryHeader->nextFreeBlock = NULL;
     allocateMemoryHeader->isUse = true;
+    //TODO 最後の時何もしない
+    ((MemoryBlockHeader*)((intptr_t)allocateMemoryHeader->body + allocateMemoryHeader->size))->prevBlockPoint = allocateMemoryHeader;
 
     //余ったBLockの切り出し
     //TODO 要求サイズと同じBlocksizeの場合
-    newFreeMemoryHeader = (MemoryBlockHeader*)((intptr_t)allocateMemoryHeader + sizeof(MemoryBlockHeader) + allocateMemoryHeader->size);
+    newFreeMemoryHeader = (MemoryBlockHeader*)((intptr_t)allocateMemoryHeader->body + allocateMemoryHeader->size);
     newFreeMemoryHeader->size = tempSize - allocateMemoryHeader->size - sizeof(MemoryBlockHeader);
+    //TODO 最後の時何もしない
+    ((MemoryBlockHeader*)((intptr_t)newFreeMemoryHeader->body + newFreeMemoryHeader->size))->prevBlockPoint = newFreeMemoryHeader;
     newFreeMemoryHeader->isUse = false;
     newFreeMemoryHeader->nextFreeBlock = memoryPoolHeader.freeMemoryList->nextFreeBlock;
     newFreeMemoryHeader->prevFreeBlock = NULL;
@@ -52,6 +56,9 @@ void* myAllocate(size_t size){
     return allocateMemoryHeader->body;
 }
 
+void popList(MemoryBlockHeader* popNode){
+    popNode->prevFreeBlock->nextFreeBlock = popNode->nextFreeBlock;
+}
 void myFree(void* ptr){
     if(ptr == NULL){
         return;
@@ -62,4 +69,23 @@ void myFree(void* ptr){
     freeBlockHeader->prevFreeBlock = NULL;
     memoryPoolHeader.freeMemoryList->prevFreeBlock = freeBlockHeader;
     memoryPoolHeader.freeMemoryList = freeBlockHeader;
+
+    if(((MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size))->isUse == false){
+        MemoryBlockHeader* mergeBlockHeader = (MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size);
+        mergeBlockHeader->prevFreeBlock->nextFreeBlock = mergeBlockHeader->nextFreeBlock;
+        freeBlockHeader->size = ((intptr_t)mergeBlockHeader->body + mergeBlockHeader->size) - (intptr_t)freeBlockHeader->body;
+    }
+
+    MemoryBlockHeader 
+        *prevMergeBlockHeader = freeBlockHeader->prevBlockPoint,
+        *nextMergeBlockHeader = (MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size);
+
+    if(nextMergeBlockHeader->isUse == false){
+        freeBlockHeader->size = ((intptr_t)nextMergeBlockHeader->body + nextMergeBlockHeader->size) - (intptr_t)freeBlockHeader->body;
+        popList(nextMergeBlockHeader);
+    }
+    if(prevMergeBlockHeader->isUse == false){
+        prevMergeBlockHeader->size = ((intptr_t)freeBlockHeader->body + freeBlockHeader->size) - (intptr_t)prevMergeBlockHeader->body;
+        popList(freeBlockHeader);
+    }
 }

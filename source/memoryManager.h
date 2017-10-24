@@ -1,11 +1,13 @@
 #pragma once  
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 typedef struct _MemoryBlockHeader{
+    struct _MemoryBlockHeader* prevBlockPoint;
     struct _MemoryBlockHeader* prevFreeBlock;
     struct _MemoryBlockHeader* nextFreeBlock;
-    size_t size;
+    ptrdiff_t size;
     bool isUse;
     void* body[];
 } MemoryBlockHeader;
