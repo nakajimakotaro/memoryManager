@@ -60,6 +60,7 @@ void myFree(void* ptr){
     if(ptr == NULL){
         return;
     }
+    //メモリの開放　
     MemoryBlockHeader* freeBlockHeader = (MemoryBlockHeader*)((intptr_t)ptr - sizeof(MemoryBlockHeader));
     freeBlockHeader->isUse = false;
     freeBlockHeader->nextFreeBlock = memoryPoolHeader.freeMemoryList;
@@ -67,17 +68,12 @@ void myFree(void* ptr){
     memoryPoolHeader.freeMemoryList->prevFreeBlock = freeBlockHeader;
     memoryPoolHeader.freeMemoryList = freeBlockHeader;
 
-    if(((MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size))->isUse == false){
-        MemoryBlockHeader* mergeBlockHeader = (MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size);
-        mergeBlockHeader->prevFreeBlock->nextFreeBlock = mergeBlockHeader->nextFreeBlock;
-        freeBlockHeader->size = ((intptr_t)mergeBlockHeader->body + mergeBlockHeader->size) - (intptr_t)freeBlockHeader->body;
-    }
-
+    //フリーメモリのマージ
     MemoryBlockHeader 
         *prevMergeBlockHeader = freeBlockHeader->prevBlockPoint,
         *nextMergeBlockHeader = (MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size);
 
-    if(nextMergeBlockHeader->isUse == false){
+    if(nextMergeBlockHeader && nextMergeBlockHeader->isUse == false){
         freeBlockHeader->size = ((intptr_t)nextMergeBlockHeader->body + nextMergeBlockHeader->size) - (intptr_t)freeBlockHeader->body;
         if(nextMergeBlockHeader->nextFreeBlock && nextMergeBlockHeader->prevFreeBlock){
             nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
@@ -85,7 +81,7 @@ void myFree(void* ptr){
             memoryPoolHeader.freeMemoryList = freeBlockHeader;
         }
     }
-    if(prevMergeBlockHeader->isUse == false){
+    if(prevMergeBlockHeader && prevMergeBlockHeader->isUse == false){
         prevMergeBlockHeader->size = ((intptr_t)freeBlockHeader->body + freeBlockHeader->size) - (intptr_t)prevMergeBlockHeader->body;
         nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
         if(nextMergeBlockHeader->nextFreeBlock && nextMergeBlockHeader->prevFreeBlock){

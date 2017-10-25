@@ -1,9 +1,8 @@
 
-CC=clang
 test: $(CFILE)
-	$(CC) source/memoryManager.c source/test.c -g  -o test.out
+	g++ -Llibrary/googletest-release-1.8.0/googlemock/gtest -Ilibrary/googletest-release-1.8.0/googlemock/include/ source/test.cpp source/memoryManager.c -lgtest -pthread
 
 library: $(CFILE)
-	$(CC) -c source/memoryManager.c -o source/memoryManager.o
+	clang -c source/memoryManager.c -o source/memoryManager.o
 	ar -r build/memoryManager.a source/memoryManager.o
 
