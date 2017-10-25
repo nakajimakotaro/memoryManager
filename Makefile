@@ -1,6 +1,6 @@
 
 test: $(CFILE)
-	g++ -Llibrary/googletest-release-1.8.0/googlemock/gtest -Ilibrary/googletest-release-1.8.0/googlemock/include/ source/test.cpp source/memoryManager.c -lgtest -pthread
+	g++ -Llibrary/googletest-release-1.8.0/googlemock/gtest -Ilibrary/googletest-release-1.8.0/googlemock/include/ source/test.cpp source/memoryManager.c -lgtest -pthread -g -o test.out
 
 library: $(CFILE)
 	clang -c source/memoryManager.c -o source/memoryManager.o
