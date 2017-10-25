@@ -12,22 +12,22 @@ void debugPoolView(){
 TEST(memory, memory){
     initMemory();
     debugPoolView();
-    ASSERT_TRUE(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 40);
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40);
 
     void* m1 = myAllocate(10);
-    ASSERT_TRUE(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 40 - 10 - 40);
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40);
     debugPoolView();
 
     void* m2 = myAllocate(30);
-    ASSERT_TRUE(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 40 - 10 - 40 - 30 - 40);
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40 - 30 - 40);
     debugPoolView();
 
     myFree(m1);
-    ASSERT_TRUE(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 40 - 10 - 40 - 30 - 40 + 10);
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, 10);
     debugPoolView();
 
     void* m5 = myAllocate(30);
-    ASSERT_TRUE(memoryPoolHeader.freeMemoryList->size == POOL_SIZE - 40 - 10 - 40 - 30 - 40);
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, 10);
     debugPoolView();
 }
 
