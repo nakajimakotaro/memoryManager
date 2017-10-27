@@ -12,7 +12,7 @@ typedef struct _MemoryBlockHeader{
     void* body[];
 } MemoryBlockHeader;
 typedef struct _MemoryPoolHeader{
-    void* startPoint;
+    MemoryBlockHeader* startPoint;
     MemoryBlockHeader* freeMemoryList;
 } MemoryPoolHeader;
 void* myAllocate(size_t size);

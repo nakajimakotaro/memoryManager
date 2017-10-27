@@ -1,34 +1,64 @@
-#include "memoryManager.h"
+extern "C"{
+    #include "memoryManager.h"
+}
 #include "gtest/gtest.h"
 
 void debugPoolView(){
-    printf("poolStart: %zu\n", (size_t)memoryPoolHeader.startPoint);
-    printf("poolLast:  %zu\n", (size_t)((intptr_t)memoryPoolHeader.startPoint + POOL_SIZE));
-    printf("freePoint: %zu\n", (size_t)memoryPoolHeader.freeMemoryList);
-    printf("freeSize:  %zu\n", memoryPoolHeader.freeMemoryList->size);
+    MemoryBlockHeader* blockHeader = memoryPoolHeader.startPoint;
+    printf("\n");
+    while((intptr_t)blockHeader < (intptr_t)(memoryPoolHeader.startPoint) + POOL_SIZE){
+        if(blockHeader->isUse){
+            printf("■");
+        }else{
+            printf("□");
+        }
+
+        blockHeader = (MemoryBlockHeader*)((intptr_t)blockHeader + sizeof(MemoryBlockHeader) + blockHeader->size);
+    }
+    printf("\n");
+    blockHeader = memoryPoolHeader.startPoint;
+    while((intptr_t)blockHeader < (intptr_t)(memoryPoolHeader.startPoint) + POOL_SIZE){
+        printf("blockStart %p\n", blockHeader);
+        printf("isUse      %s\n", blockHeader->isUse ? "true" : "false");
+        printf("blockSize  %zu\n", (size_t)blockHeader->size);
+        blockHeader = (MemoryBlockHeader*)((intptr_t)blockHeader + sizeof(MemoryBlockHeader) + blockHeader->size);
+    }
     printf("\n");
 }
 
-TEST(memory, memory){
+TEST(memory, memory2){
     initMemory();
     debugPoolView();
     ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40);
 
     void* m1 = myAllocate(10);
-    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40);
     debugPoolView();
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40);
 
-    void* m2 = myAllocate(30);
-    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40 - 30 - 40);
+    void* m2 = myAllocate(10);
+    debugPoolView();
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40 - 10 - 40);
+
+    void* m3 = myAllocate(10);
+    debugPoolView();
+    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - 40 - 10 - 40 - 10 - 40 - 10 - 40);
+    void* m4 = myAllocate(10);
     debugPoolView();
 
     myFree(m1);
-    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, 10);
     debugPoolView();
-
-    void* m5 = myAllocate(30);
-    ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, 10);
+    myFree(m2);
     debugPoolView();
+    myFree(m3);
+    m3 = myAllocate(10);
+    debugPoolView();
+    myFree(m3);
+    debugPoolView();
+    m4 = myAllocate(10);
+    debugPoolView();
+    myFree(m4);
+    debugPoolView();
+    //ASSERT_EQ(memoryPoolHeader.freeMemoryList->size, POOL_SIZE - sizeof(MemoryBlockHeader));
 }
 
 int main(int argc, char** argv){

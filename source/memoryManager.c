@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <lzma.h>
 #include "memoryManager.h"
 
-const size_t POOL_SIZE = 200;
+const size_t POOL_SIZE = 400;
 
 MemoryPoolHeader memoryPoolHeader = {};
 
@@ -27,10 +27,11 @@ void* myAllocate(size_t size){
         }
         allocateMemoryHeader = (MemoryBlockHeader*)allocateMemoryHeader->nextFreeBlock;
     }
+
     if(allocateMemoryHeader == NULL){
         return NULL;
     }
-    size_t tempSize = memoryPoolHeader.freeMemoryList->size;
+    ptrdiff_t tempSize = memoryPoolHeader.freeMemoryList->size;
 
 
     //BLockの切り出し
@@ -53,15 +54,17 @@ void* myAllocate(size_t size){
     memoryPoolHeader.freeMemoryList->prevFreeBlock = newFreeMemoryHeader;
     memoryPoolHeader.freeMemoryList = newFreeMemoryHeader;
 
+
+
     return allocateMemoryHeader->body;
 }
 
-void myFree(void* ptr){
-    if(ptr == NULL){
+void myFree(void* ptr) {
+    if (ptr == NULL) {
         return;
     }
     //メモリの開放　
-    MemoryBlockHeader* freeBlockHeader = (MemoryBlockHeader*)((intptr_t)ptr - sizeof(MemoryBlockHeader));
+    MemoryBlockHeader *freeBlockHeader = (MemoryBlockHeader *) ((intptr_t) ptr - sizeof(MemoryBlockHeader));
     freeBlockHeader->isUse = false;
     freeBlockHeader->nextFreeBlock = memoryPoolHeader.freeMemoryList;
     freeBlockHeader->prevFreeBlock = NULL;
@@ -69,25 +72,31 @@ void myFree(void* ptr){
     memoryPoolHeader.freeMemoryList = freeBlockHeader;
 
     //フリーメモリのマージ
-    MemoryBlockHeader 
-        *prevMergeBlockHeader = freeBlockHeader->prevBlockPoint,
-        *nextMergeBlockHeader = (MemoryBlockHeader*)((intptr_t)freeBlockHeader->body + freeBlockHeader->size);
+    MemoryBlockHeader
+            *prevMergeBlockHeader = freeBlockHeader->prevBlockPoint,
+            *nextMergeBlockHeader = (MemoryBlockHeader *) ((intptr_t) freeBlockHeader->body + freeBlockHeader->size);
+    nextMergeBlockHeader = nextMergeBlockHeader < (intptr_t)memoryPoolHeader.startPoint + POOL_SIZE ? nextMergeBlockHeader : NULL;
 
-    if(nextMergeBlockHeader && nextMergeBlockHeader->isUse == false){
-        freeBlockHeader->size = ((intptr_t)nextMergeBlockHeader->body + nextMergeBlockHeader->size) - (intptr_t)freeBlockHeader->body;
-        if(nextMergeBlockHeader->nextFreeBlock && nextMergeBlockHeader->prevFreeBlock){
-            nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
-        }else if(nextMergeBlockHeader->prevBlockPoint == NULL){
-            memoryPoolHeader.freeMemoryList = freeBlockHeader;
+    //prevMergeBlockがfreeBlockを吸収する
+    if (prevMergeBlockHeader && prevMergeBlockHeader->isUse == false) {
+        memoryPoolHeader.freeMemoryList = freeBlockHeader->nextFreeBlock;
+        freeBlockHeader->nextFreeBlock->prevFreeBlock = NULL;
+        //prevMergeBlockHeaderのsizeをfreeBlockHeaderのラストまで伸ばす
+        prevMergeBlockHeader->size = ((intptr_t) freeBlockHeader->body + freeBlockHeader->size) - (intptr_t) prevMergeBlockHeader->body;
+        freeBlockHeader = prevMergeBlockHeader;
+        if ((intptr_t) freeBlockHeader->body + freeBlockHeader->size + sizeof(MemoryBlockHeader) < (intptr_t)memoryPoolHeader.startPoint + POOL_SIZE) {
+            ((MemoryBlockHeader *)((intptr_t) freeBlockHeader->body + freeBlockHeader->size))->prevBlockPoint = freeBlockHeader;
         }
     }
-    if(prevMergeBlockHeader && prevMergeBlockHeader->isUse == false){
-        prevMergeBlockHeader->size = ((intptr_t)freeBlockHeader->body + freeBlockHeader->size) - (intptr_t)prevMergeBlockHeader->body;
+    if (nextMergeBlockHeader && nextMergeBlockHeader->isUse == false) {
         nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
-        if(nextMergeBlockHeader->nextFreeBlock && nextMergeBlockHeader->prevFreeBlock){
-            nextMergeBlockHeader->prevFreeBlock->nextFreeBlock = nextMergeBlockHeader->nextFreeBlock;
-        }else if(nextMergeBlockHeader->prevBlockPoint == NULL){
-            memoryPoolHeader.freeMemoryList = prevMergeBlockHeader;
+        if(nextMergeBlockHeader->nextFreeBlock){
+            nextMergeBlockHeader->nextFreeBlock->prevFreeBlock = NULL;
+        }
+        //FreeBlockのサイズをnextMergeBlockHeaderのラストまで伸ばす
+        freeBlockHeader->size = ((intptr_t) nextMergeBlockHeader->body + nextMergeBlockHeader->size) - (intptr_t) freeBlockHeader->body;
+        if ((intptr_t) freeBlockHeader->body + freeBlockHeader->size + sizeof(MemoryBlockHeader) < (intptr_t)memoryPoolHeader.startPoint + POOL_SIZE) {
+            ((MemoryBlockHeader *)((intptr_t) freeBlockHeader->body + freeBlockHeader->size))->prevBlockPoint = freeBlockHeader;
         }
     }
 }
